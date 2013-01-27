@@ -1,0 +1,74 @@
+#!/usr/bin/env python
+# find_links.py
+
+# 1.delete all the unnessasy parts
+# 2.how to directly exe py filename from command line
+# 3.Ask about the autotesting process and git part
+# 4.Ask about the algorithsm to check any logic error (other href? <a>)
+
+import sys, re
+from operator import itemgetter, attrgetter
+
+def get_links(files, bycount=False):
+    
+    # Get all the links stored into link_list
+    link_list = []
+    
+    for file in files:
+        infile = open(file, 'r')
+        infile.seek(0)
+        while True:
+            text = infile.readline()
+            # End of file
+            if text == '':
+                break
+            # Read a line and find all the anchor links
+            else:
+                anchor_tag_pattern = ur'<a\b[^<>]*>'
+                anchor_tag_list = re.findall(anchor_tag_pattern, text)
+                for anchor_tag in anchor_tag_list:
+                    link_pattern = ur'\bhref\s*=\s*"[^"]*"' # consider white spaces such as 'href  =  "http://..."'
+                    link = re.findall(link_pattern, anchor_tag)[0]
+                    link = re.sub(ur'\s' ,'', link) # remove all the white spaces
+                    link = link[6:-1] # remove the 'href="' and the '"'in the end
+                    if link[:7]=="http://":
+                        link_list.append(link)
+        infile.close()
+        
+    # Get all the links counted and stored into link_dict
+    link_set = set(link_list)
+    link_dict = {}
+    j = 0
+    sum = 0
+    for e in link_set:
+        count = link_list.count(e)
+        link_dict[e] = count
+        sum = sum + count  ###########
+        j = j+1 ###########
+        print j, count, e ###########
+    print sum  ###########
+
+    # Get the link_dict sorted into a tuple list
+    results = sorted(link_dict.items())
+    if bycount == True:
+        results = sorted(results, key = itemgetter(1,0))
+    return results
+
+if __name__ == '__main__':
+    
+    # read in the arguments
+    files = sys.argv
+    del files[0]    # remove by index, use 'del'
+    bycount = False
+    if (len(files) > 0) and ('-bycount' == files[0]):
+        bycount = True
+        files.remove('-bycount') # remove a value, use 'list.remove('value')
+    print files
+    print bycount
+    
+    # count the links in the files, return a list of tuple eg:
+    # ("httm://www.google.com", 2)
+    results = get_links(files, bycount)
+    for e in results:
+        print e
+
